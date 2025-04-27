@@ -31,6 +31,19 @@ minimum_times = [
 
 def PTN_to_event_network(PTN,vehicle_paths,scedule_delay,minimum_times):
     """
+    PTN: matrix of shape (#stations) * #(stations) whose entry (i,j) is 1 is there is a path from i to j and 0 otherwise
+    vehicle_paths: list of lenght #vehicles, whose k-th entry is the path for vehicle k.: 
+    a list of 2-ples, where the 2-ple (i,j) is the path from station i to station j
+    schedule_delay: list of lenght #vehicles, whose k-th entry is a list of length 2*lenght(path of vehicle k), and each entry is
+    a tuple (scheduled_time, delay) for vehicle k to perform the corresponding acticity. --CHECK THIS!--
+    minimum_times: list of lenght #vehicles whose k-th entry is a list of length 2*lenght(path of vehicle k) - 1, and each entry is
+    the minimum time for vehicle k to perform the corresponding acticity.
+
+    Returns: event_network. A matrix M of size #events/2, where the entry M[a,b] at row a and column b,
+    where a is [train_1, station_1] and b is [train_2, station_2], is the slack for the activity
+    (train_1 arrives at station_1) —> (train_2 departs at station_2) if such an activity is possible and -1 otherwise.
+
+    
     The basic idea for part 1 is this: for each path we localize the problem to a 
     len(path) x len(path) matrix submatrix, and then starting with 
     a_{21}(with respect to the submatrix) we will move right and down for each edge

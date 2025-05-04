@@ -61,4 +61,4 @@ def get_paths(event_network, columns):
         if path[0][2] != 1 and path[-1][2] != -1:
             valid_paths.add(path)
 
-    return(paths)
+    return(valid_paths)

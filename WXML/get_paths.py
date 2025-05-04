@@ -53,12 +53,53 @@ def get_paths(event_network, columns):
         if new_paths:
             paths.update(new_paths)
             updated = True
-    
+
+    # Extracts the feasible paths from the set of paths
+    paths = trim_paths(paths)
+    paths = no_repeats(paths)
+
+    return(paths)
+
+def trim_paths(paths):
+    """
+    paths: set of all paths formable by the event activity matrix
+
+    return: subset of paths that start with a departure and end with an arrival
+    """
+
     valid_paths = set()
     
     # Removes paths that start as arrivals and end as departures
     for path in paths:
-        if path[0][2] != 1 and path[-1][2] != -1:
+        if path[0][2] == -1 and path[-1][2] == 1:
             valid_paths.add(path)
-
+    
     return(valid_paths)
+
+def no_repeats(paths):
+    """
+    paths: set of paths (each path is a tuple/list of events),
+           each event is (location, station, direction)
+
+    return: set of trimmed paths where no (location, station, -direction) is repeated
+    """
+    
+    trimmed_paths = set()
+
+
+    for path in paths:
+        seen = set()
+        trimmed = []
+        
+        # Loops until the entire path is added or a path truncated at the loop is added
+        for event in path:
+            loc, station, direction = event
+            reverse_event = (loc, station, -direction)
+            if reverse_event in seen:
+                break
+            seen.add((loc, station, direction))
+            trimmed.append(event)
+
+        trimmed_paths.add(tuple(trimmed))
+
+    return trimmed_paths

@@ -88,9 +88,9 @@ def PTN_to_event_network(PTN,vehicle_paths,scedule_delay,minimum_times):
             #here, counter anchors us to one submatrix, while subcounter 
             #has modulus len(path) so that we can wrap around
             #we use the formula later time - earliest time - minimum time=slack
-            event_network[counter+((subcounter+1)% len(path))]
-            [counter+subcounter] = scedule_delay[i]
-            [scedule_counter+1][0]-scedule_delay[i][scedule_counter][0]
+            event_network[counter+((subcounter+1)% len(path))][
+                counter+subcounter] = scedule_delay[i][
+                    scedule_counter+1][0]-scedule_delay[i][scedule_counter][0]
             -minimum_times[i][minimum_counter]
             scedule_counter += 1
             minimum_counter += 1
@@ -98,8 +98,8 @@ def PTN_to_event_network(PTN,vehicle_paths,scedule_delay,minimum_times):
             #here, we're checking if we reached the end of the path. Note that
             #this also gaurantees our graph is acyclic
             if minimum_counter != len(scedule_delay[i]):
-                event_network[counter+((subcounter+1)% len(path))]
-                [counter+((subcounter+1)% len(path))] = scedule_delay[i][scedule_counter+1][0]
+                event_network[counter+((subcounter+1)% len(path))][
+                    counter+((subcounter+1)% len(path))] = scedule_delay[i][scedule_counter+1][0]
                 -scedule_delay[i][scedule_counter][0]-minimum_times[i][minimum_counter]
                 scedule_counter += 1
                 minimum_counter += 1
@@ -123,7 +123,8 @@ def PTN_to_event_network(PTN,vehicle_paths,scedule_delay,minimum_times):
             transfers[end].append((i, 1,(start,end),arrive_time))
         counter += len(path)
         subcounter = 0
-            
+
+        
     #not sure how minimums of transfers work here, as the scedule_delay and minimum_times
     # were able to be local to each path
     for i, station in transfers:
@@ -137,7 +138,8 @@ def PTN_to_event_network(PTN,vehicle_paths,scedule_delay,minimum_times):
                    #taking sum(len(path) was also another way I tried to 
                    # keep track of submatrices)       
                    event_network[sum(len(path) for path in vehicle_paths[:a])
-                                     + vehicle_paths[a].index(c)]
-                   [sum(len(path) for path in vehicle_paths[:e])
+                                     + vehicle_paths[a].index(c)][
+                                         sum(len(path) for path in vehicle_paths[:e])
                                      + vehicle_paths[e].index(g)] = h-g
     return event_network   
+#build collums for get_paths later

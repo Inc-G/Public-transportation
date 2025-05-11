@@ -8,10 +8,15 @@ def get_paths(event_network, columns):
 
     columns: Vector of (vehicle, station) pairs
 
-    return: Set of all possible paths within the event activity graph   
+    return: Set of all possible paths within the event activity graph
+            Set of waiting activities
+            Set of changing activities
+            Set of driving activities
     """
 
-    arcs = set()
+    waits = set()
+    changes = set()
+    drives = set()
 
     # Repackages the EA Matrix as a pandas DataFrame
     M = pd.DataFrame(event_network, columns = columns)
@@ -23,13 +28,14 @@ def get_paths(event_network, columns):
             # Checks activity at and appends 1/-1 for arrival/departure
             if M.at[row, col] != -1: 
                 if row[0] != col[0]:
-                    arcs.add((row + (1,), (col + (-1,))))
+                    changes.add((row + (1,), (col + (-1,))))
                 elif row[1] != col[1]:
-                    arcs.add((col + (-1,), row + (1,)))                 
+                    drives.add((col + (-1,), row + (1,)))                  
                 else:
-                    arcs.add((row + (1,), (col + (-1,))))
+                    waits.add((row + (1,), (col + (-1,))))
     
     # Initializes set of paths
+    arcs = changes.union(drives, waits)
     paths = set(tuple(arc) for arc in arcs)
     updated = True
 
@@ -58,7 +64,7 @@ def get_paths(event_network, columns):
     paths = trim_paths(paths)
     paths = no_repeats(paths)
 
-    return(paths)
+    return(paths, waits, changes, drives)
 
 def trim_paths(paths):
     """

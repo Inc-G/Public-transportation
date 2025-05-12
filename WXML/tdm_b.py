@@ -1,26 +1,34 @@
 import numpy as np
 import pandas as pd
 
-def tdm_b(events, paths, drives, changes, waits):
+def tdm_b(event_network, columns, schedule_delay):
     """
-    events: set of all events in the EA network
+    event_network: Event Activity matrix populated with slack times for
+    driving, waiting, and transfering
 
-    paths: set of all paths in the EA network
+    columns: Vector of (vehicle, station) pairs
 
-    drives: set of all driving activities in the EA network
-    
-    changes: set of all waiting activities in the EA network
-
-    waits: set of all waiting activites in the EA network
+    schedule_delay: list of (schedule_time, delay) pairs
 
     returns:
         A: matrix for LP
 
         b: upper bounds for each constraint
 
-        integerality: vector that denotes whether variables should be integers or continuous
+        integrality: vector that denotes whether variables should be integers or continuous
     """
+
     M = 10
+
+    # Extracts basic event-activity data
+    paths, waits, changes, drives = get_paths(event_network, columns) 
+    events = get_events(columns)
+    
+    e_del = []
+    """
+    for time in schedule_delay:
+        e_del.append
+    """ 
 
     # Sets the number of columns in A
     num_variables = len(events) + len(paths) + len(paths)
@@ -65,7 +73,16 @@ def tdm_b(events, paths, drives, changes, waits):
         new_row[j + y_start] = -1
 
         A = np.vstack([A, new_row])
-        b = np.vstack([b, "change"]) # Need to extract s_a from EA network
+
+        # Extract s_a from EA network
+        i = i[:-1]
+        j = j[:-1]
+
+        i_index = columns.index(i)
+        j_index = columns.index(j)
+
+        slack = event_network[i_index][j_index]
+        b = np.vstack([b, slack])
     
     # Adds -Mz_p + y_i(p) - q_p <= 0 constraint
     counter = 0
@@ -83,7 +100,48 @@ def tdm_b(events, paths, drives, changes, waits):
 
         counter += 1
     
+    # Adds y_i >= d_i constraint
+    for i in range(len(e_del)):
+        if e_del[i] != 0:
+            new_row = np.zeros(num_variables)
+            new_row[i + y_start] = -1
+
+            A = np.vstack([A, new_row])
+            b = np.vstack([b, -e_del[i]])
+    
+    paths_dict = {paths: idx for idx, paths  in enumerate(paths)}
+    print(paths_dict)
+    
+    # Adds -Mz_p + y_i - y_j <= s_a constraint
+    for change in changes:
+        i = change[0]
+        j = change[1]
 
 
+        for path in paths:
+            for k in range(len(path) - 1):
+                if path[k] == i and path[k+1] == j:
+                    new_row = np.zeros(num_variables)
 
+                    p = paths_dict[path]
+                    i_index = events_dict[i]
+                    j_index = events_dict[j]
 
+                    new_row[p] = -M
+                    new_row[i_index + y_start] = 1
+                    new_row[j_index + y_start] = -1 
+
+                    A = np.vstack([A, new_row])
+
+                    i_sliced = i[:-1]
+                    j_sliced = j[:-1]
+
+                    i_index = columns.index(i_sliced)
+                    j_index = columns.index(j_sliced)
+
+                    slack = event_network[i_index][j_index]
+                    print(slack)
+    
+    # Sets y_p variables as continuous with all else being integer
+    integrality = np.ones(num_variables, dtype = int)
+    integrality[y_start:q_start] = 0

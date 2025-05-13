@@ -1,6 +1,6 @@
 import pandas as pd
 
-def get_paths(event_network, columns):
+def get_paths(event_network, vehicle_paths):
     
     """
     event_network: Event Activity matrix populated with slack times for
@@ -13,7 +13,12 @@ def get_paths(event_network, columns):
             Set of changing activities
             Set of driving activities
     """
-
+    #collums under this implementation are easy to calculate, though
+    #not the most efficient as of now, might need to be optimized
+    columns = []
+    for i in range(len(vehicle_paths)):
+        for j in range(len(vehicle_paths[i])):
+            columns.append((i, vehicle_paths[i][j][0]))
     waits = set()
     changes = set()
     drives = set()

@@ -61,5 +61,5 @@ def forward_CPM(event_network, scedule, delays):
             current = perimeter.pop()
             if (not current in visited):
                 break
-        
+        counter += len(scedule[i])
     return 0

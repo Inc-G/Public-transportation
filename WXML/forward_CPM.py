@@ -17,8 +17,10 @@ minimum_times = [
 ]
 M =PTN_to_event_network.PTN_to_event_network(min_transfer, vehicle_paths, scedule, minimum_times)
 
-
+edge_to = dict()
 #can't test until I have critical connections
+# not having critical connections also affects how I update edge_to, 
+# might not neet event_network for these methods in the future
 critical_connections = []
 def keep_critcal_connections(event_network,critical_connections,vehicle_paths):
     blocks = []
@@ -46,6 +48,10 @@ def keep_critcal_connections(event_network,critical_connections,vehicle_paths):
 # assuming were working with a nice delays and scedule set based on the vertices. can refactor how 
 # data is sent in, just need structure for traversal with event_network
 def forward_CPM(event_network, scedule, delays):
+    #might need to go back to old code and have an ordered numbering of the vertices,
+    # or some kind of more direct connection
+    #also if we have knowelde that we're going to use this info later, it just makes more sense
+    #to pick up the info in event_network
     distance_to = []
     counter = 0
     for i in range(len(scedule)):
@@ -60,6 +66,10 @@ def forward_CPM(event_network, scedule, delays):
         while(not perimeter == []):
             current = perimeter.pop()
             if (not current in visited):
-                break
+                for value in edge_to.get(current):
+                    perimeter.append(value[0])
+                    if (distance_to[current] + value[1] > distance_to[value[0]]):
+                        distance_to[value[0]] = distance_to[current] + value[1]
+                visited.add(current)
         counter += len(scedule[i])
-    return 0
+    return distance_to

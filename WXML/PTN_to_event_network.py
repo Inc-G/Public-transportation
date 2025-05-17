@@ -18,7 +18,7 @@ minimum_times = [
     [4,1,3],
     [3,1,4]
 ]
-
+edge_to = dict()
 
 
 def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
@@ -73,22 +73,33 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
     #to track where we are within that submatrix
     counter = 0
     subcounter = 0
+    slack = 0
     
+    vertex_counter = 0
     for i, path in enumerate(vehicle_paths):
         for (start, end) in (path):
             #keep track of depart and arrival times for transfers
             depart_time = scedule[i][scedule_counter]
+            transfers[start].append((i, -1,(start,end),depart_time,vertex_counter))
             #adds along the diagonal
-            event_network[counter+subcounter][counter + subcounter] = scedule[
-                i][scedule_counter+1]-scedule[i][scedule_counter] - minimum_times[i][minimum_counter]
+            slack = scedule[i][scedule_counter+1]-scedule[i][
+                scedule_counter] - minimum_times[i][minimum_counter]
+            event_network[counter+subcounter][counter + subcounter] = slack
+            edge_to.update({vertex_counter: [[vertex_counter+1,minimum_times[i][minimum_counter]]]})
             scedule_counter += 1
             minimum_counter += 1
             arrive_time = scedule[i][scedule_counter]
+            
+            
+            vertex_counter += 1
+            transfers[end].append((i, 1,(start,end),arrive_time,vertex_counter))
             #checks if we run into a loop
             if minimum_counter < len(minimum_times[i]):
-                event_network[counter+subcounter][
-                counter+ subcounter + 1] = scedule[i
-                ][scedule_counter+1] - scedule[i][scedule_counter]-minimum_times[i][minimum_counter]
+                slack = scedule[i][scedule_counter+1] - scedule[i][
+                    scedule_counter]-minimum_times[i][minimum_counter]
+                event_network[counter+subcounter][counter+ subcounter + 1] = slack
+                edge_to.update({vertex_counter: [[vertex_counter+1,minimum_times[i][minimum_counter]]]})
+                vertex_counter += 1
                 scedule_counter += 1
                 minimum_counter += 1
             else:
@@ -98,23 +109,27 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
 
             #update transfers with vehicle, start and exit, arrival and departure times
             # and the edge itself
-            transfers[start].append((i, -1,(start,end),depart_time))
-            transfers[end].append((i, 1,(start,end),arrive_time))
+            
+        vertex_counter += 1    
         counter += len(path)
         subcounter = 0
 
-        
+
     
     for i, station in enumerate(transfers):
-       for (a,b,c,d) in station:
-           for (e,f,g,h) in station:
+       for (a,b,c,d,v1) in station:
+           for (e,f,g,h,v2) in station:
                #feasibility check here, might be different with delays
                if a != e and b == 1 and f == -1 and d + min_transfer[i] <= h:     
+                   slack = h-d-min_transfer[i]
                    event_network[sum(len(path) for path in vehicle_paths[:e])
                                      + vehicle_paths[e].index(g)-1][
                                          sum(len(path) for path in vehicle_paths[:a])
-                                     + vehicle_paths[a].index(c)+1] = h-d-min_transfer[i]
+                                     + vehicle_paths[a].index(c)+1] = slack
+                   current_outgoing = edge_to.get(v1)
+                   current_outgoing.append([v2,min_transfer[i]])
+                   edge_to.update({v1: current_outgoing})
     return event_network
 
 M = PTN_to_event_network(min_transfer, vehicle_paths, scedule, minimum_times)
-   
+  

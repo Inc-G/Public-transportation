@@ -18,7 +18,6 @@ minimum_times = [
     [4,1,3],
     [3,1,4]
 ]
-edge_to = dict()
 
 
 def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
@@ -59,7 +58,7 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
     
     
     
-    
+    edge_to = dict() # Dictionary to store connections between events and minimum transfer times
     #total number of edges in all paths
     edge_count = sum([len(path) for path in vehicle_paths])
     #matrix of size edge_count x edge_count of -1

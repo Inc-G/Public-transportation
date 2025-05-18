@@ -1,14 +1,14 @@
 import numpy as np
 import pandas as pd
 
-def tdm_b(event_network, columns, schedule_delay):
+def tdm_b(event_network, columns, e_del):
     """
     event_network: Event Activity matrix populated with slack times for
     driving, waiting, and transfering
 
     columns: Vector of (vehicle, station) pairs
 
-    schedule_delay: list of (schedule_time, delay) pairs
+    e_del: list of source delays indexed by node
 
     returns:
         A: matrix for LP
@@ -23,12 +23,6 @@ def tdm_b(event_network, columns, schedule_delay):
     # Extracts basic event-activity data
     paths, waits, changes, drives = get_paths(event_network, columns) 
     events = get_events(columns)
-    
-    e_del = []
-    """
-    for time in schedule_delay:
-        e_del.append
-    """ 
 
     # Sets the number of columns in A
     num_variables = len(events) + len(paths) + len(paths)
@@ -145,3 +139,5 @@ def tdm_b(event_network, columns, schedule_delay):
     # Sets y_p variables as continuous with all else being integer
     integrality = np.ones(num_variables, dtype = int)
     integrality[y_start:q_start] = 0
+
+    return(A, b, integrality)

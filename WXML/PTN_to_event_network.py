@@ -22,6 +22,25 @@ minimum_times = [
 
 def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
     """
+    Generates an event network matrix representing the slack between connected events
+    in a public transport network (PTN).
+
+    Args:
+        min_transfer (list): Minimum transfer times at each station.
+        vehicle_paths (list): List of paths for each vehicle, where each path is a
+                              list of (start_station, end_station) tuples.
+        schedule (list): List of schedules for each vehicle, where each schedule is a
+                         list of arrival and departure times at each station along the path.
+        minimum_times (list): List of minimum travel times for each edge in each
+                              vehicle's path.
+
+    Returns:
+        numpy.ndarray: A matrix where entry [i, j] represents the slack between
+                       event j (arrival at a station) and event i (departure from a station).
+                       A value of -1 indicates no direct connection.
+    
+    OLDER DESCRIPTION BELOW
+    ----
     PTN: matrix of shape (#stations) * #(stations) whose entry (i,j) is 1 is there is a path 
     from i to j and 0 otherwise
 
@@ -53,11 +72,7 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
     (B,5)[-1. -1. -1.  0.]]
     (not exactly like this, zero-based indexing changes some stuff)
     With the version that closes the loop giving us the same matrix. 
-    """
-    
-    
-    
-    
+    """    
     edge_to = dict() # Dictionary to store connections between events and minimum transfer times
     #total number of edges in all paths
     edge_count = sum([len(path) for path in vehicle_paths])

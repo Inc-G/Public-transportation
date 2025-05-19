@@ -1,4 +1,77 @@
 import pandas as pd
+import PTN_to_event_network
+
+
+
+
+min_transfer = [0,0,0,0,0]
+#assuming paths are fed in so that there are no loops(ok if whole path is a loop)
+#each list is for each vehicle sequentially, and the tuples are edges in the path.
+vehicle_paths = [
+        [(0,1),(1,0)],
+        [(3,1),(1,4)],
+]
+#assuming sceudels (and minimum times) are in-order with the paths
+scedule = [
+    [0,5,7,10],
+    [0,4,6,10]
+]
+
+minimum_times = [
+    [4,1,3],
+    [3,1,4]
+]
+edge_to = dict()
+
+
+event_network = PTN_to_event_network.PTN_to_event_network(
+    min_transfer, vehicle_paths, scedule, minimum_times)
+
+
+def trim_paths(paths):
+    """
+    paths: set of all paths formable by the event activity matrix
+
+    return: subset of paths that start with a departure and end with an arrival
+    """
+
+    valid_paths = set()
+    
+    # Removes paths that start as arrivals and end as departures
+    for path in paths:
+        if path[0][2] == -1 and path[-1][2] == 1:
+            valid_paths.add(path)
+    
+    return(valid_paths)
+
+def no_repeats(paths):
+    """
+    paths: set of paths (each path is a tuple/list of events),
+           each event is (location, station, direction)
+
+    return: set of trimmed paths where no (location, station, -direction) is repeated
+    """
+    
+    trimmed_paths = set()
+
+
+    for path in paths:
+        seen = set()
+        trimmed = []
+        
+        # Loops until the entire path is added or a path truncated at the loop is added
+        for event in path:
+            loc, station, direction = event
+            reverse_event = (loc, station, -direction)
+            if reverse_event in seen:
+                break
+            seen.add((loc, station, direction))
+            trimmed.append(event)
+
+        trimmed_paths.add(tuple(trimmed))
+
+    return trimmed_paths
+
 
 def get_paths(event_network, vehicle_paths):
     
@@ -70,47 +143,11 @@ def get_paths(event_network, vehicle_paths):
     paths = no_repeats(paths)
 
     return(paths, waits, changes, drives)
+P=get_paths(event_network, vehicle_paths)
+print(P)
 
-def trim_paths(paths):
-    """
-    paths: set of all paths formable by the event activity matrix
 
-    return: subset of paths that start with a departure and end with an arrival
-    """
 
-    valid_paths = set()
+
+
     
-    # Removes paths that start as arrivals and end as departures
-    for path in paths:
-        if path[0][2] == -1 and path[-1][2] == 1:
-            valid_paths.add(path)
-    
-    return(valid_paths)
-
-def no_repeats(paths):
-    """
-    paths: set of paths (each path is a tuple/list of events),
-           each event is (location, station, direction)
-
-    return: set of trimmed paths where no (location, station, -direction) is repeated
-    """
-    
-    trimmed_paths = set()
-
-
-    for path in paths:
-        seen = set()
-        trimmed = []
-        
-        # Loops until the entire path is added or a path truncated at the loop is added
-        for event in path:
-            loc, station, direction = event
-            reverse_event = (loc, station, -direction)
-            if reverse_event in seen:
-                break
-            seen.add((loc, station, direction))
-            trimmed.append(event)
-
-        trimmed_paths.add(tuple(trimmed))
-
-    return trimmed_paths

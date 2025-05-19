@@ -1,7 +1,16 @@
 import numpy as np
 import pandas as pd
+import get_paths
+import get_events
+import PTN_to_event_network
 
-def tdm_b(event_network, columns, schedule_delay):
+
+min_transfer = [0,0,0,0,0]
+paths = [[(0, 1), (1, 2)], [(3, 1), (1, 4)]]
+schedule = [[0, 5, 7, 10], [0, 4, 6, 10]]
+min_times = [[4, 1, 3], [0, 0, 0]]
+edge_to = dict()
+def tdm_b(event_network, columns ):# scedule-delay):
     """
     event_network: Event Activity matrix populated with slack times for
     driving, waiting, and transfering
@@ -145,3 +154,8 @@ def tdm_b(event_network, columns, schedule_delay):
     # Sets y_p variables as continuous with all else being integer
     integrality = np.ones(num_variables, dtype = int)
     integrality[y_start:q_start] = 0
+
+    return A, b, integrality
+
+M = PTN_to_event_network.PTN_to_event_network(min_transfer, paths, schedule, min_times)
+A, b, integrality = tdm_b(M, paths, waits, changes, drives, e_del)

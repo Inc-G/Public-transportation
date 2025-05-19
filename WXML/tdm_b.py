@@ -156,4 +156,4 @@ def tdm_b(event_network, columns, e_del, weights):
         if connections[connection] == 0:
             maintained_paths.append(paths[connection])
 
-    return(maintained_paths)s
+    return(maintained_paths)

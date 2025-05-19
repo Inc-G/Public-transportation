@@ -1,43 +1,27 @@
 import numpy as np
 import pandas as pd
-import get_paths
-import get_events
-import PTN_to_event_network
+from scipy.optimize import milp, LinearConstraint, Bounds
 
-
-min_transfer = [0,0,0,0,0]
-paths = [[(0, 1), (1, 2)], [(3, 1), (1, 4)]]
-schedule = [[0, 5, 7, 10], [0, 4, 6, 10]]
-min_times = [[4, 1, 3], [0, 0, 0]]
-edge_to = dict()
-def tdm_b(event_network, columns ):# scedule-delay):
+def tdm_b(event_network, columns, e_del, weights):
     """
     event_network: Event Activity matrix populated with slack times for
     driving, waiting, and transfering
 
     columns: Vector of (vehicle, station) pairs
 
-    schedule_delay: list of (schedule_time, delay) pairs
+    e_del: list of source delays indexed by node
 
-    returns:
-        A: matrix for LP
+    weights: list of weights indexed by path
 
-        b: upper bounds for each constraint
-
-        integrality: vector that denotes whether variables should be integers or continuous
+    returns: list of all maintained paths determined by linear optimization
     """
 
     M = 10
+    T= 10
 
     # Extracts basic event-activity data
     paths, waits, changes, drives = get_paths(event_network, columns) 
     events = get_events(columns)
-    
-    e_del = []
-    """
-    for time in schedule_delay:
-        e_del.append
-    """ 
 
     # Sets the number of columns in A
     num_variables = len(events) + len(paths) + len(paths)
@@ -82,16 +66,14 @@ def tdm_b(event_network, columns ):# scedule-delay):
         new_row[j + y_start] = -1
 
         A = np.vstack([A, new_row])
-
         # Extract s_a from EA network
-        i = i[:-1]
-        j = j[:-1]
+        i_sliced = activity[0][:-1]
+        j_sliced = activity[1][:-1]
 
-        i_index = columns.index(i)
-        j_index = columns.index(j)
+        i_index = columns.index(i_sliced)
+        j_index = columns.index(j_sliced)
 
-        slack = event_network[i_index][j_index]
-        b = np.vstack([b, slack])
+        b = np.vstack([b, event_network[i_index][j_index]])
     
     # Adds -Mz_p + y_i(p) - q_p <= 0 constraint
     counter = 0
@@ -117,10 +99,9 @@ def tdm_b(event_network, columns ):# scedule-delay):
 
             A = np.vstack([A, new_row])
             b = np.vstack([b, -e_del[i]])
-    
+        
     paths_dict = {paths: idx for idx, paths  in enumerate(paths)}
-    print(paths_dict)
-    
+        
     # Adds -Mz_p + y_i - y_j <= s_a constraint
     for change in changes:
         i = change[0]
@@ -147,15 +128,32 @@ def tdm_b(event_network, columns ):# scedule-delay):
 
                     i_index = columns.index(i_sliced)
                     j_index = columns.index(j_sliced)
-
-                    slack = event_network[i_index][j_index]
-                    print(slack)
-    
+                    
+                    b = np.vstack([b, event_network[i_index][j_index]])
+        
     # Sets y_p variables as continuous with all else being integer
     integrality = np.ones(num_variables, dtype = int)
     integrality[y_start:q_start] = 0
 
-    return A, b, integrality
+    c = np.zeros(num_variables)
+    for path in range(len(paths)):
+        c[path + q_start] = weights[path]
+        c[path] = T
+    
+    lower_bounds = np.full(num_variables, -1e6)
+    upper_bounds = np.full(num_variables, 1e6)
 
-M = PTN_to_event_network.PTN_to_event_network(min_transfer, paths, schedule, min_times)
-A, b, integrality = tdm_b(M, paths, waits, changes, drives, e_del)
+    linear_constraint = LinearConstraint(A, lb = -np.inf, ub = b.flatten())
+    bounds = Bounds(lower_bounds, upper_bounds)
+
+    result = milp(c = c, constraints = [linear_constraint], bounds = bounds, integrality = integrality)
+
+    paths = list(paths)
+    maintained_paths = list()
+    connections = result.x[:y_start]
+
+    for connection in range(len(connections)):
+        if connections[connection] == 0:
+            maintained_paths.append(paths[connection])
+
+    return(maintained_paths)s

@@ -1,10 +1,10 @@
 import numpy as np
 
 
-min_transfer = [0,0,0,0,0]
-paths = [[(0, 1), (1, 2)], [(3, 1), (1, 4)]]
-schedule = [[0, 5, 7, 10], [0, 4, 6, 10]]
-min_times = [[4, 1, 3], [0, 0, 0]]
+min_transfer= [0, 0, 0, 0]
+paths =[[(0, 1), (1, 2)], [(3, 1)]]
+schedule= [[0, 5, 7, 10], [0, 4]]
+min_times= [[4, 1, 3], [3]]
 edge_to = dict()
 
 
@@ -124,11 +124,14 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
                #feasibility check here, might be different with delays
                if a != e and b == 1 and f == -1 and d + min_transfer[i] <= h:     
                    slack = h-d-min_transfer[i]
-                   event_network[sum(len(path) for path in vehicle_paths[:e])
-                                     + vehicle_paths[e].index(g)-1][
-                                         sum(len(path) for path in vehicle_paths[:a])
-                                     + vehicle_paths[a].index(c)+1] = slack
-                   current_outgoing = edge_to.get(v1)
+                   row = sum(len(path) for path in vehicle_paths[:e]
+                             )+ vehicle_paths[e].index(g)-1
+                   column = sum(len(path) for path in vehicle_paths[:a]
+                                )+ vehicle_paths[a].index(c)+1
+                   if column >= event_network.shape[1]:
+                       event_network = np.insert(event_network, column,-1, axis = 1)
+                   event_network[row][column] = slack
+                   current_outgoing = edge_to.setdefault(v1,[])
                    current_outgoing.append([v2,min_transfer[i]])
                    edge_to.update({v1: current_outgoing})
     return event_network

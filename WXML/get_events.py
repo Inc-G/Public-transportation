@@ -12,3 +12,5 @@ def get_events(columns):
         events.add(column + (1,))
     
     return events
+
+print(get_events([(0, 0), (0, 1), (1, 3), (1, 1)]))

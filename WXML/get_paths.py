@@ -95,7 +95,7 @@ def get_paths(event_network, columns, rows):
 
     # Repackages the EA Matrix as a pandas DataFrame
     M = pd.DataFrame(event_network, columns = columns)
-    M.index = columns
+    M.index = rows
 
     # Checks whether or not a slack exists
     for row in M.index:

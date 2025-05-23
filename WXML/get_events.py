@@ -1,15 +1,15 @@
-def get_events(columns):
+def get_events(nodes):
     """
-    columns: Vector of (Vehicle, Station) pairs
+    nodes: Vector of (Vehicle, Station) pairs
 
-    return: Set of all events from the event activity network 
+    return: Set of all events from corresponding nodes
     """
 
     events = set()
 
-    for column in columns:
-        events.add(column + (-1,))
-        events.add(column + (1,))
+    for node in nodes:
+        events.add(node + (-1,))
+        events.add(node + (1,))
     
     return events
 

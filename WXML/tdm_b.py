@@ -193,7 +193,7 @@ edge_to = dict()
 
 event_network = PTN_to_event_network(
     min_transfer, vehicle_paths, scedule, minimum_times)
-e_del = [0,5,0,2,5,3,0,2]
+e_del = [0,0,0,2,5,3,0,2]
 weights = [0,1,2,3,4,5]
 for path in tdm_b(event_network[0],event_network[1],event_network[2], e_del, weights):
     print(path)

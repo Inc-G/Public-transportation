@@ -141,8 +141,7 @@ def get_paths(event_network, columns, rows):
 
     return(paths, waits, changes, drives)
 
-for path in (get_paths(event_network[0],event_network[1],event_network[2])[0]):
-    print(path)
+
 
 
 

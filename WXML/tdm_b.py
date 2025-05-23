@@ -3,7 +3,7 @@ import pandas as pd
 from scipy.optimize import milp, LinearConstraint, Bounds
 from get_paths import get_paths
 from get_events import get_events
-
+from PTN_to_event_network import PTN_to_event_network
 def tdm_b(event_network, columns, rows, e_del, weights):
     """
     event_network: Event Activity matrix populated with slack times for
@@ -22,7 +22,7 @@ def tdm_b(event_network, columns, rows, e_del, weights):
     T= 15
 
     # Extracts basic event-activity data
-    paths, waits, changes, drives = get_paths(event_network, columns) 
+    paths, waits, changes, drives = get_paths(event_network, columns, rows) 
 
     column_events, row_events, events = get_events(columns, rows)
 
@@ -105,7 +105,6 @@ def tdm_b(event_network, columns, rows, e_del, weights):
         A = np.vstack([A, new_row])
         b = np.vstack([b, 0])
 
-        counter += 1
         
     # Adds -Mz_p + y_i - y_j <= s_a constraint
     for change in changes:
@@ -144,8 +143,8 @@ def tdm_b(event_network, columns, rows, e_del, weights):
     for path in paths:
         p = paths_dict[path]
         
-        c[p + q_start] = weights[path]
-        c[p] = T * weights[path]
+        c[p + q_start] = weights[p]
+        c[p] = T * weights[p]
     
     lower_bounds = np.full(num_variables, -1e6)
     upper_bounds = np.full(num_variables, 1e6)
@@ -158,12 +157,43 @@ def tdm_b(event_network, columns, rows, e_del, weights):
     paths = list(paths)
     maintained_paths = list()
 
-    # Gets connection data from the solution vector x
-    connections = result.x[:y_start]
+    return(result.x[y_start:q_start])
 
+    # Gets connection data from the solution vector x
+    # connections = result.x[:y_start]
+
+    """
     for connection in range(len(connections)):
         if connections[connection] == 0:
             maintained_paths.append(paths[connection])
 
     return(maintained_paths)
+    """
+    
 
+min_transfer = [0,0,0,0,0]
+#assuming paths are fed in so that there are no loops(ok if whole path is a loop)
+#each list is for each vehicle sequentially, and the tuples are edges in the path.
+vehicle_paths = [
+        [(0,1),(1,0)],
+        [(2,1),(1,3)],
+]
+#assuming sceudels (and minimum times) are in-order with the paths
+scedule = [
+    [0,5,7,10],
+    [0,4,6,10]
+]
+
+minimum_times = [
+    [4,1,3],
+    [3,1,4]
+]
+edge_to = dict()
+
+
+event_network = PTN_to_event_network(
+    min_transfer, vehicle_paths, scedule, minimum_times)
+e_del = [0,5,0,2,5,3,0,2]
+weights = [0,1,2,3,4,5]
+for path in tdm_b(event_network[0],event_network[1],event_network[2], e_del, weights):
+    print(path)

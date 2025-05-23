@@ -141,7 +141,7 @@ def tdm_b(event_network, columns, rows, e_del, weights):
     c = np.zeros(num_variables)
     for path in range(len(paths)):
         c[path + q_start] = weights[path]
-        c[path] = T
+        c[path] = T * weights[path]
     
     lower_bounds = np.full(num_variables, -1e6)
     upper_bounds = np.full(num_variables, 1e6)

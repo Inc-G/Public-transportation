@@ -153,6 +153,8 @@ def tdm_b(event_network, columns, rows, e_del, weights):
 
     paths = list(paths)
     maintained_paths = list()
+
+    # Gets connection data from the solution vector x
     connections = result.x[:y_start]
 
     for connection in range(len(connections)):

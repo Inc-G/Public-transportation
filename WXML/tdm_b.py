@@ -23,8 +23,8 @@ def tdm_b(event_network, columns, rows, e_del, weights):
 
     # Extracts basic event-activity data
     paths, waits, changes, drives = get_paths(event_network, columns) 
-    column_events = get_events(columns)
-    row_events = get_events(rows)
+
+    column_events, row_events, events = get_events(columns, rows)
 
     events = column_events.union(row_events)
 
@@ -79,22 +79,7 @@ def tdm_b(event_network, columns, rows, e_del, weights):
         j_index = rows.index(j_sliced)
 
         b = np.vstack([b, event_network[i_index][j_index]])
-    
-    # Adds -Mz_p + y_i(p) - q_p <= 0 constraint
-    counter = 0
 
-    for path in paths:
-        i = events_dict[path[-1]]
-
-        new_row = np.zeros(num_variables)
-        new_row[i + y_start] = 1
-        new_row[counter] = -M 
-        new_row[counter + q_start] = -1
-
-        A = np.vstack([A, new_row])
-        b = np.vstack([b, 0])
-
-        counter += 1
     
     # Adds y_i >= d_i constraint
     for i in range(len(e_del)):
@@ -106,6 +91,21 @@ def tdm_b(event_network, columns, rows, e_del, weights):
             b = np.vstack([b, -e_del[i]])
         
     paths_dict = {paths: idx for idx, paths  in enumerate(paths)}
+
+    # Adds -Mz_p + y_i(p) - q_p <= 0 constraint
+    for path in paths:
+        i = events_dict[path[-1]]
+        p = paths_dict[path]
+        
+        new_row = np.zeros(num_variables)
+        new_row[i + y_start] = 1
+        new_row[p] = -M 
+        new_row[p + q_start] = -1
+
+        A = np.vstack([A, new_row])
+        b = np.vstack([b, 0])
+
+        counter += 1
         
     # Adds -Mz_p + y_i - y_j <= s_a constraint
     for change in changes:
@@ -141,9 +141,11 @@ def tdm_b(event_network, columns, rows, e_del, weights):
     integrality[y_start:q_start] = 0
 
     c = np.zeros(num_variables)
-    for path in range(len(paths)):
-        c[path + q_start] = weights[path]
-        c[path] = T
+    for path in paths:
+        p = paths_dict[path]
+        
+        c[p + q_start] = weights[path]
+        c[p] = T * weights[path]
     
     lower_bounds = np.full(num_variables, -1e6)
     upper_bounds = np.full(num_variables, 1e6)

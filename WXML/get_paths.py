@@ -9,7 +9,7 @@ min_transfer = [0,0,0,0,0]
 #each list is for each vehicle sequentially, and the tuples are edges in the path.
 vehicle_paths = [
         [(0,1),(1,0)],
-        [(3,1),(1,4)],
+        [(2,1),(1,3)],
 ]
 #assuming sceudels (and minimum times) are in-order with the paths
 scedule = [

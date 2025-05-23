@@ -15,7 +15,7 @@ minimum_times = [
     [4,1,3],
     [3,1,4]
 ]
-edge_to = dict()
+
 M =PTN_to_event_network.PTN_to_event_network(min_transfer, vehicle_paths, scedule, minimum_times)
 
 

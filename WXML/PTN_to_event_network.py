@@ -64,12 +64,12 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
     """    
     
     edge_count = sum([len(path) for path in vehicle_paths])
-    columns =np.array([])
-    rows = np.array([])
+    columns = []
+    rows = []
     for i, path in enumerate(vehicle_paths):
         for (start, end) in path:
-            np.append(columns, (i,start))
-            np.append(rows,(i,end))
+            columns.append((i,start))
+            rows.append((i,end))
     #matrix of size edge_count x edge_count of -1
     event_network = np.ones((edge_count,edge_count))*-1
     transfers = [[] for _ in range(len(min_transfer))]

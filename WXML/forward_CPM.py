@@ -15,9 +15,10 @@ minimum_times = [
     [4,1,3],
     [3,1,4]
 ]
+edge_to = dict()
 M =PTN_to_event_network.PTN_to_event_network(min_transfer, vehicle_paths, scedule, minimum_times)
 
-edge_to = dict()
+
 #can't test until I have critical connections
 # not having critical connections also affects how I update edge_to, 
 # might not neet event_network for these methods in the future
@@ -47,7 +48,7 @@ def keep_critcal_connections(event_network,critical_connections,vehicle_paths):
 #we'd assume we're working with a critical connection matrix, otherwise we make one and pass it in
 # assuming were working with a nice delays and scedule set based on the vertices. can refactor how 
 # data is sent in, just need structure for traversal with event_network
-def forward_CPM(event_network, scedule, delays):
+def forward_CPM(scedule, delays):
     #might need to go back to old code and have an ordered numbering of the vertices,
     # or some kind of more direct connection
     #also if we have knowelde that we're going to use this info later, it just makes more sense

@@ -2,9 +2,22 @@ import numpy as np
 
 
 min_transfer = [0,0,0,0,0]
-paths = [[(0, 1), (1, 2)], [(3, 1), (1, 4)]]
-schedule = [[0, 5, 7, 10], [0, 4, 6, 10]]
-min_times = [[4, 1, 3], [0, 0, 0]]
+#assuming paths are fed in so that there are no loops(ok if whole path is a loop)
+#each list is for each vehicle sequentially, and the tuples are edges in the path.
+vehicle_paths = [
+        [(0,1),(1,0)],
+        [(2,1),(1,3)],
+]
+#assuming sceudels (and minimum times) are in-order with the paths
+scedule = [
+    [0,5,7,10],
+    [0,4,6,10]
+]
+
+minimum_times = [
+    [4,1,3],
+    [3,1,4]
+]
 edge_to = dict() # Dictionary to store connections between events and minimum transfer times
     #total number of edges in all paths
 
@@ -143,6 +156,6 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
                    edge_to.update({v1: current_outgoing})
     return event_network,columns,rows
 
-M = PTN_to_event_network(min_transfer, paths, schedule, min_times)
+M = PTN_to_event_network(min_transfer, vehicle_paths, scedule, minimum_times)
 print(M)
   

@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import milp, LinearConstraint, Bounds
+from get_paths import get_paths
+from get_events import get_events
 
 def tdm_b(event_network, columns, rows, e_del, weights):
     """
@@ -16,8 +18,8 @@ def tdm_b(event_network, columns, rows, e_del, weights):
     returns: list of all maintained paths determined by linear optimization
     """
 
-    M = 10
-    T= 10
+    M = 15
+    T= 15
 
     # Extracts basic event-activity data
     paths, waits, changes, drives = get_paths(event_network, columns) 
@@ -162,3 +164,4 @@ def tdm_b(event_network, columns, rows, e_del, weights):
             maintained_paths.append(paths[connection])
 
     return(maintained_paths)
+

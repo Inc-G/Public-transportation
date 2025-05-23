@@ -141,7 +141,7 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
                    current_outgoing = edge_to.setdefault(v1,[])
                    current_outgoing.append([v2,min_transfer[i]])
                    edge_to.update({v1: current_outgoing})
-    return event_network
+    return event_network,columns,rows
 
 M = PTN_to_event_network(min_transfer, paths, schedule, min_times)
 print(M)

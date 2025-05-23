@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import milp, LinearConstraint, Bounds
 
-def tdm_b(event_network, columns, e_del, weights):
+def tdm_b(event_network, columns, rows, e_del, weights):
     """
     event_network: Event Activity matrix populated with slack times for
     driving, waiting, and transfering
@@ -21,7 +21,10 @@ def tdm_b(event_network, columns, e_del, weights):
 
     # Extracts basic event-activity data
     paths, waits, changes, drives = get_paths(event_network, columns) 
-    events = get_events(columns)
+    column_events = get_events(columns)
+    row_events = get_events(rows)
+
+    events = column_events.union(row_events)
 
     # Sets the number of columns in A
     num_variables = len(events) + len(paths) + len(paths)
@@ -71,7 +74,7 @@ def tdm_b(event_network, columns, e_del, weights):
         j_sliced = activity[1][:-1]
 
         i_index = columns.index(i_sliced)
-        j_index = columns.index(j_sliced)
+        j_index = rows.index(j_sliced)
 
         b = np.vstack([b, event_network[i_index][j_index]])
     
@@ -127,7 +130,7 @@ def tdm_b(event_network, columns, e_del, weights):
                     j_sliced = j[:-1]
 
                     i_index = columns.index(i_sliced)
-                    j_index = columns.index(j_sliced)
+                    j_index = rows.index(j_sliced)
                     
                     b = np.vstack([b, event_network[i_index][j_index]])
         
@@ -150,6 +153,8 @@ def tdm_b(event_network, columns, e_del, weights):
 
     paths = list(paths)
     maintained_paths = list()
+
+    # Gets connection data from the solution vector x
     connections = result.x[:y_start]
 
     for connection in range(len(connections)):

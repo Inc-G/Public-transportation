@@ -1,11 +1,12 @@
 import numpy as np
 
 
-min_transfer= [0, 0, 0, 0]
-paths =[[(0, 1), (1, 2)], [(3, 1)]]
-schedule= [[0, 5, 7, 10], [0, 4]]
-min_times= [[4, 1, 3], [3]]
-edge_to = dict()
+min_transfer = [0,0,0,0,0]
+paths = [[(0, 1), (1, 2)], [(3, 1), (1, 4)]]
+schedule = [[0, 5, 7, 10], [0, 4, 6, 10]]
+min_times = [[4, 1, 3], [0, 0, 0]]
+edge_to = dict() # Dictionary to store connections between events and minimum transfer times
+    #total number of edges in all paths
 
 
 def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
@@ -61,9 +62,14 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
     (not exactly like this, zero-based indexing changes some stuff)
     With the version that closes the loop giving us the same matrix. 
     """    
-    edge_to = dict() # Dictionary to store connections between events and minimum transfer times
-    #total number of edges in all paths
+    
     edge_count = sum([len(path) for path in vehicle_paths])
+    columns =np.array([])
+    rows = np.array([])
+    for i, path in enumerate(vehicle_paths):
+        for (start, end) in path:
+            np.append(columns, (i,start))
+            np.append(rows,(i,end))
     #matrix of size edge_count x edge_count of -1
     event_network = np.ones((edge_count,edge_count))*-1
     transfers = [[] for _ in range(len(min_transfer))]
@@ -128,8 +134,9 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
                              )+ vehicle_paths[e].index(g)-1
                    column = sum(len(path) for path in vehicle_paths[:a]
                                 )+ vehicle_paths[a].index(c)+1
-                   if column >= event_network.shape[1]:
+                   if column >= sum(len(path) for path in vehicle_paths[:a])+ len(vehicle_paths[a]):
                        event_network = np.insert(event_network, column,-1, axis = 1)
+                       np.insert(columns, (e,i))
                    event_network[row][column] = slack
                    current_outgoing = edge_to.setdefault(v1,[])
                    current_outgoing.append([v2,min_transfer[i]])

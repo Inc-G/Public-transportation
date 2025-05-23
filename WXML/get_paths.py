@@ -73,7 +73,7 @@ def no_repeats(paths):
     return trimmed_paths
 
 
-def get_paths(event_network, vehicle_paths):
+def get_paths(event_network, columns, rows):
     
     """
     event_network: Event Activity matrix populated with slack times for
@@ -88,10 +88,7 @@ def get_paths(event_network, vehicle_paths):
     """
     #collums under this implementation are easy to calculate, though
     #not the most efficient as of now, might need to be optimized
-    columns = []
-    for i in range(len(vehicle_paths)):
-        for j in range(len(vehicle_paths[i])):
-            columns.append((i, vehicle_paths[i][j][0]))
+    
     waits = set()
     changes = set()
     drives = set()
@@ -143,8 +140,7 @@ def get_paths(event_network, vehicle_paths):
     paths = no_repeats(paths)
 
     return(paths, waits, changes, drives)
-P=get_paths(event_network, vehicle_paths)
-print(P)
+
 
 
 

@@ -82,7 +82,7 @@ def tdm_b(event_network, columns, rows, e_del, weights):
     counter = 0
 
     for path in paths:
-        i = events_dict[path[0]]
+        i = events_dict[path[-1]]
 
         new_row = np.zeros(num_variables)
         new_row[i + y_start] = 1

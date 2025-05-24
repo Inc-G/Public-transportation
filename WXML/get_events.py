@@ -7,6 +7,7 @@ def get_events(columns, rows):
 
     column_events = set()
     row_events = set()
+    events = []
 
     for columns in columns:
         column_events.add(columns + (-1,))
@@ -14,8 +15,9 @@ def get_events(columns, rows):
     for row in rows:
         row_events.add(row + (1,))
 
-    events = column_events.union(row_events)
-    
+    for event in column_events:
+        events.append(event)
+    for event in row_events:
+        events.append(event)
+  
     return column_events, row_events, events
-
-

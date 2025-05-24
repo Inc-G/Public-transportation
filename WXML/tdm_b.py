@@ -1,9 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import milp, LinearConstraint, Bounds
-from get_paths import get_paths
-from get_events import get_events
-from PTN_to_event_network import PTN_to_event_network
+
 def tdm_b(event_network, columns, rows, e_del, weights):
     """
     event_network: Event Activity matrix populated with slack times for
@@ -26,8 +24,6 @@ def tdm_b(event_network, columns, rows, e_del, weights):
 
     column_events, row_events, events = get_events(columns, rows)
 
-    events = column_events.union(row_events)
-
     # Sets the number of columns in A
     num_variables = len(events) + len(paths) + len(paths)
     q_start = len(events) + len(paths)
@@ -37,29 +33,11 @@ def tdm_b(event_network, columns, rows, e_del, weights):
     A = np.empty((0, num_variables))
     b = np.empty((0,1))
 
+
     # Rewrites events as a dictionary for future indexing 
     events_dict = {event: idx for idx, event  in enumerate(events)}
-
-    # Adds z_p in {0,1} constraint
-    for i in range(len(paths)):
-        new_row = np.zeros(num_variables)
-        new_row[i] = 1
-
-        A = np.vstack([A, new_row])
-        b = np.vstack([b, 1])
-
-
-        new_row[i] = -1
-        A = np.vstack([A, new_row])
-        b = np.vstack([b, 0])
     
-    # Adds q_p >= 0 constraint
-    for i in range(len(paths)):
-        new_row = np.zeros(num_variables)
-        new_row[i + q_start] = -1
-
-        A= np.vstack([A, new_row])
-        b = np.vstack([b, 0])
+    
     
     # Adds y_i - y_j <= s_a constraint
     for activity in (waits | drives):
@@ -135,9 +113,9 @@ def tdm_b(event_network, columns, rows, e_del, weights):
                     
                     b = np.vstack([b, event_network[i_index][j_index]])
         
-    # Sets y_p variables as continuous with all else being integer
+    # Sets z_p and y_i variables as continuous with all else being integer
     integrality = np.ones(num_variables, dtype = int)
-    integrality[y_start:q_start] = 0
+    integrality[q_start:] = 0
 
     c = np.zeros(num_variables)
     for path in paths:
@@ -146,8 +124,10 @@ def tdm_b(event_network, columns, rows, e_del, weights):
         c[p + q_start] = weights[p]
         c[p] = T * weights[p]
     
-    lower_bounds = np.full(num_variables, -1e6)
+    lower_bounds = np.full(num_variables, 0)
+
     upper_bounds = np.full(num_variables, 1e6)
+    upper_bounds[:y_start] = 1
 
     linear_constraint = LinearConstraint(A, lb = -np.inf, ub = b.flatten())
     bounds = Bounds(lower_bounds, upper_bounds)
@@ -157,18 +137,17 @@ def tdm_b(event_network, columns, rows, e_del, weights):
     paths = list(paths)
     maintained_paths = list()
 
-    return(result.x[y_start:q_start])
+    # Use to check y variables as needed
+    # return(result.x[y_start:q_start])
 
     # Gets connection data from the solution vector x
-    # connections = result.x[:y_start]
+    connections = result.x[:y_start]
 
-    """
     for connection in range(len(connections)):
         if connections[connection] == 0:
             maintained_paths.append(paths[connection])
 
     return(maintained_paths)
-    """
     
 
 min_transfer = [0,0,0,0,0]

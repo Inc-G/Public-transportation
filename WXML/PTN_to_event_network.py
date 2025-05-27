@@ -18,9 +18,6 @@ minimum_times = [
     [4,1,3],
     [3,1,4]
 ]
-edge_to = dict() # Dictionary to store connections between events and minimum transfer times
-    #total number of edges in all paths
-
 
 def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
     """
@@ -75,7 +72,10 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
     (not exactly like this, zero-based indexing changes some stuff)
     With the version that closes the loop giving us the same matrix. 
     """    
-    
+    edge_to = dict() # Dictionary to store connections between events and minimum transfer times
+    #total number of edges in all paths
+    edge_to.update({-1: []})
+
     edge_count = sum([len(path) for path in vehicle_paths])
     columns = []
     rows = []
@@ -154,6 +154,10 @@ def PTN_to_event_network(min_transfer,vehicle_paths,scedule,minimum_times):
                    current_outgoing = edge_to.setdefault(v1,[])
                    current_outgoing.append([v2,min_transfer[i]])
                    edge_to.update({v1: current_outgoing})
-    return event_network,columns,rows
 
-  
+                   current_outgoing = edge_to.setdefault(-1,[])
+                   current_outgoing.append(((a,v1),(e,v2)))
+                   edge_to.update({-1: current_outgoing})
+    return event_network,columns,rows,edge_to
+
+

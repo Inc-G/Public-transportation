@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import milp, LinearConstraint, Bounds
-
+from PTN_to_event_network import PTN_to_event_network
+from get_paths import get_paths
+from get_events import get_events
 def tdm_b(event_network, columns, rows, e_del, weights):
     """
     event_network: Event Activity matrix populated with slack times for
@@ -167,12 +169,11 @@ minimum_times = [
     [4,1,3],
     [3,1,4]
 ]
-edge_to = dict()
+
 
 
 event_network = PTN_to_event_network(
     min_transfer, vehicle_paths, scedule, minimum_times)
 e_del = [0,0,0,2,5,3,0,2]
 weights = [0,1,2,3,4,5]
-for path in tdm_b(event_network[0],event_network[1],event_network[2], e_del, weights):
-    print(path)
+

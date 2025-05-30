@@ -45,27 +45,34 @@ def keep_critcal_connections(paths, edge_to):
             edge_to.update({change[0]:outgoing})
     return edge_to
 
-
+def get_kth_element(k):
+    for i in range(len(scedule)):
+        n = len(scedule[i])
+        if k < n:
+            return i,k
+        k -= n
     
 #we'd assume we're working with a critical connection matrix, otherwise we make one and pass it in
 # assuming were working with a nice delays and scedule set based on the vertices. can refactor how 
 # data is sent in, just need structure for traversal with event_network
-def forward_CPM(scedule, e_del, edge_to):
+def forward_CPM(scedule, e_del, edge_to,paths):
     #might need to go back to old code and have an ordered numbering of the vertices,
     # or some kind of more direct connection
     #also if we have knowelde that we're going to use this info later, it just makes more sense
     #to pick up the info in event_network
+    edge_to = keep_critcal_connections(paths, edge_to)
+    distance_to = [[] for i in range(len(scedule))]
     
-    distance_to = []
     counter = 0
     for i in range(len(scedule)):
         for j in range(len(scedule[i])):
-            distance_to.append(scedule[i][j]+e_del[counter])
+            distance_to[i].append(scedule[i][j]+e_del[counter])
             counter += 1
     counter = 0
     
     perimeter = []
     for i in range(len(scedule)):
+        
         visited = set()
         perimeter.append(counter)
         while(not perimeter == []):
@@ -73,10 +80,15 @@ def forward_CPM(scedule, e_del, edge_to):
             if (not current in visited):
                 for value in edge_to.setdefault(current,[]):
                     perimeter.append(value[0])
-                    if (distance_to[current] + value[1] > distance_to[value[0]]):
-                        distance_to[value[0]] = distance_to[current] + value[1]
+                    indexing_current = get_kth_element(current)
+                    indexing_value = get_kth_element(value[0])
+                    distance_to_current = distance_to[indexing_current[0]][indexing_current[1]]
+                    distance_to_value = distance_to[indexing_value[0]][indexing_value[1]]  
+                    if ( distance_to_current + value[1] > distance_to_value):
+                        distance_to[indexing_value[0]][indexing_value[1]
+                        ]= distance_to_current + value[1]
                 visited.add(current)
         counter += len(scedule[i])
     return distance_to
-edge_to = keep_critcal_connections(paths, M[3])
-print(forward_CPM(scedule, e_del, edge_to))
+print(forward_CPM(scedule, e_del, M[3], paths))
+
